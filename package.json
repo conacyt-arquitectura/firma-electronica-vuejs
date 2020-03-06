@@ -11,7 +11,6 @@
   "dependencies": {
     "@fidm/x509": "^1.2.1",
     "express": "^4.17.1",
-    "js-crypto-key-utils": "^0.7.3",
-    "js-x509-utils": "^0.5.3"
+    "js-crypto-key-utils": "^0.7.3"
   }
 }

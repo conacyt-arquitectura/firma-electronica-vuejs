@@ -13,8 +13,8 @@ const { Certificate, PrivateKey } = require('@fidm/x509')
 
 var keyutils = require('js-crypto-key-utils');
 
-const certObj = fs.readFileSync(root + '/cert/GONM430818HP3/gonm430818hp3.cer');
-const keyObj = new keyutils.Key('der', fs.readFileSync(root + '/cert/GONM430818HP3/GONM430818HP3.key'));
+const certObj = fs.readFileSync('/home/usuario/tmp1/cert/GONM430818HP3/gonm430818hp3.cer');
+const keyObj = new keyutils.Key('der', fs.readFileSync('/home/usuario/tmp1/cert/GONM430818HP3/GONM430818HP3.key'));
 const yourPassphrase = '12345678a';
 
 async function prueba(pemCert) {
@@ -38,9 +38,9 @@ async function prueba(pemCert) {
         //console.log('Public: ' + pem);
 
 
-        const data = 'Esto es una prueba';
+        const data = Buffer.allocUnsafe(100); //'Esto es una prueba';
 
-        const signature = privateKey.sign(data, 'sha256')
+        const signature = privateKey.sign(data, 'sha512')
 
         const ed25519Cert = Certificate.fromPEM(pemCert);
 
@@ -48,8 +48,7 @@ async function prueba(pemCert) {
 
         //console.log('CERT: ' + pemCert);
 
-
-        if (ed25519Cert.publicKey.verify(data, signature, 'sha256')) {
+        if (ed25519Cert.publicKey.verify(data, signature, 'sha512')) {
           console.error('Es válido');
         } else {
           console.error('No es válido');
