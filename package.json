@@ -1,0 +1,17 @@
+{
+  "name": "firma",
+  "version": "1.0.0",
+  "description": "prueba de firma",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fidm/x509": "^1.2.1",
+    "express": "^4.17.1",
+    "js-crypto-key-utils": "^0.7.3",
+    "js-x509-utils": "^0.5.3"
+  }
+}
