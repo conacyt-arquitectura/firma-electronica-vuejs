@@ -18,7 +18,14 @@
       </tr>
 
       <tr>
-        <td>Password</td>
+        <td>RFC:</td>
+        <td>
+          <input type="text" readonly v-model="rfc" />
+        </td>
+      </tr>
+
+      <tr>
+        <td>Password:</td>
         <td><input id="password" type="password" v-model="password" /></td>
       </tr>
     </table>

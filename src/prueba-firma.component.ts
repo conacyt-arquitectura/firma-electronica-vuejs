@@ -4,6 +4,16 @@ import { Vue } from "vue-property-decorator";
 import jseu from "js-encoding-utils";
 import keyutils from "js-crypto-key-utils";
 
+const asn1js = require("asn1js");
+const pkijs = require("pkijs");
+
+const Certificate = pkijs.Certificate;
+const AttributeTypeAndValue = pkijs.AttributeTypeAndValue;
+
+const rfcATV = new AttributeTypeAndValue({
+  type: "2.5.4.45"
+});
+
 export class Options {
   constructor() {}
 }
@@ -17,7 +27,7 @@ export default class PruebaFirmaComponent extends Vue {
   password: string = "";
   rfc: string = "";
 
-  private certFile: string = "";
+  private certFile: any;
   private keyFile: ArrayBuffer = new ArrayBuffer(0);
 
   public get options(): Options {
@@ -54,7 +64,10 @@ export default class PruebaFirmaComponent extends Vue {
 
   private setCertContent(content: ArrayBuffer) {
     try {
-      this.certFile = jseu.formatter.binToPem(content, "certificate");
+      this.rfc = "";
+      const asn1 = asn1js.fromBER(content);
+      this.certFile = new Certificate({ schema: asn1.result });
+      this.rfc = this.certFile.subject.typesAndValues.find((a: { type: any }) => a.type === rfcATV.type)?.value.valueBlock.value;
     } catch (e) {
       console.log("Certificado no válido");
       alert("Certificado no válido");
@@ -67,8 +80,12 @@ export default class PruebaFirmaComponent extends Vue {
 
   private setKeyContent(content: ArrayBuffer) {
     try {
-      new keyutils.Key("der", new Uint8Array(content));
-      this.keyFile = content;
+      let tmp = new keyutils.Key("der", new Uint8Array(content));
+      if (!tmp.isPrivate || !tmp.isEncrypted) {
+        throw "No es una llve privada ni cifrada";
+      } else {
+        this.keyFile = content;
+      }
     } catch (e) {
       console.log("Llave no válida");
       alert("Llave no válida");
