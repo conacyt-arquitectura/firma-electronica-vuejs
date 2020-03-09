@@ -15,10 +15,11 @@ let defaultConfig = new Options();
 export { defaultConfig };
 @Component
 export default class PruebaFirmaComponent extends Vue {
-  password = "";
+  password: string = "";
+  rfc: string = "";
 
-  private certFile: any;
-  private keyFile: any;
+  private certFile: string = "";
+  private keyFile: ArrayBuffer = new ArrayBuffer(0);
 
   public get options(): Options {
     return (<any>this).$PRUEBA_FIRMA_DEFAULT_OPTIONS || defaultConfig;
@@ -26,29 +27,27 @@ export default class PruebaFirmaComponent extends Vue {
 
   public process() {
     try {
-      let keyObjArr = Uint8Array.from(atob(this.keyFile), c => c.charCodeAt(0));
-      let keyObj = new keyutils.Key("der", keyObjArr);
-
-      let certObjArr = Uint8Array.from(atob(this.certFile), c => c.charCodeAt(0));
-      let certObj = jseu.formatter.binToPem(certObjArr, "certificate");
-
-      console.log(certObj);
+      let keyObj = new keyutils.Key("der", new Uint8Array(this.keyFile));
 
       if (keyObj.isEncrypted) {
         keyObj.decrypt(this.password).then(ok => {
           if (ok) {
             keyObj.export("pem").then(privateKeyPem => {
-              console.log(privateKeyPem);
-
               let buffer = new Buffer(privateKeyPem.toString(), "utf-8");
 
               const data = Buffer.allocUnsafe(100); // Datos a cifrar
+              console.log("1");
               const privateKey = PrivateKey.fromPEM(buffer);
-
-              buffer = new Buffer(certObj, "utf-8");
+              console.log("2");
+              buffer = new Buffer(this.certFile, "utf-8");
+              console.log("3");
               let ed25519Cert = Certificate.fromPEM(buffer);
+              console.log("4");
+
+              console.log(privateKey.toPEM());
 
               let signature = privateKey.sign(data, algoritmo);
+              console.log("5");
 
               if (ed25519Cert.publicKey.verify(data, signature, algoritmo)) {
                 alert("Prueba existosa");
@@ -68,29 +67,38 @@ export default class PruebaFirmaComponent extends Vue {
   }
 
   public handleCertUpload() {
-    this.getData((<any>this.$refs.key).files[0], this.setCertContent);
+    this.getData((<any>this.$refs.cert).files[0], this.setCertContent);
   }
 
-  private setCertContent(content: any) {
-    this.certFile = content;
+  private setCertContent(content: ArrayBuffer) {
+    try {
+      this.certFile = jseu.formatter.binToPem(content, "certificate");
+    } catch (e) {
+      console.log("Certificado no válido");
+      alert("Certificado no válido");
+    }
   }
 
   public handleKeyUpload() {
     this.getData((<any>this.$refs.key).files[0], this.setKeyContent);
   }
 
-  private setKeyContent(content: any) {
-    this.keyFile = content;
+  private setKeyContent(content: ArrayBuffer) {
+    try {
+      new keyutils.Key("der", new Uint8Array(content));
+      this.keyFile = content;
+    } catch (e) {
+      console.log("Llave no válida");
+      alert("Llave no válida");
+    }
   }
 
   private getData(file: any, cb: any) {
     const fileReader = new FileReader();
-    fileReader.readAsDataURL(file);
-    fileReader.onload = function(e: any) {
-      const content = e.target.result.substr(
-        e.target.result.indexOf("base64,") + "base64,".length
-      );
-      cb(content);
+    fileReader.readAsArrayBuffer(file);
+    fileReader.onload = () => {
+      const arrayBuffer = fileReader.result as ArrayBuffer;
+      cb(arrayBuffer);
     };
   }
 }

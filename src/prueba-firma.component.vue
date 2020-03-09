@@ -6,26 +6,14 @@
       <tr>
         <td>Certificado</td>
         <td>
-          <input
-            id="cert"
-            ref="cert"
-            type="file"
-            accept=".cer"
-            v-on:change="handleCertUpload()"
-          />
+          <input id="cert" ref="cert" type="file" accept=".cer" v-on:change="handleCertUpload()" />
         </td>
       </tr>
 
       <tr>
         <td>Llave</td>
         <td>
-          <input
-            id="key"
-            ref="key"
-            type="file"
-            accept=".key"
-            v-on:change="handleKeyUpload()"
-          />
+          <input id="key" ref="key" type="file" accept=".key" v-on:change="handleKeyUpload()" />
         </td>
       </tr>
 
