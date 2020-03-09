@@ -1,7 +1,6 @@
 import Component from "vue-class-component";
 import { Vue } from "vue-property-decorator";
 
-import { Certificate, PrivateKey } from "@fidm/x509";
 import jseu from "js-encoding-utils";
 import keyutils from "js-crypto-key-utils";
 
@@ -30,35 +29,18 @@ export default class PruebaFirmaComponent extends Vue {
       let keyObj = new keyutils.Key("der", new Uint8Array(this.keyFile));
 
       if (keyObj.isEncrypted) {
-        keyObj.decrypt(this.password).then(ok => {
-          if (ok) {
+        keyObj
+          .decrypt(this.password)
+          .then(ok => {
+            console.debug("decrypt: " + ok);
             keyObj.export("pem").then(privateKeyPem => {
-              let buffer = new Buffer(privateKeyPem.toString(), "utf-8");
-
-              const data = Buffer.allocUnsafe(100); // Datos a cifrar
-              console.log("1");
-              const privateKey = PrivateKey.fromPEM(buffer);
-              console.log("2");
-              buffer = new Buffer(this.certFile, "utf-8");
-              console.log("3");
-              let ed25519Cert = Certificate.fromPEM(buffer);
-              console.log("4");
-
-              console.log(privateKey.toPEM());
-
-              let signature = privateKey.sign(data, algoritmo);
-              console.log("5");
-
-              if (ed25519Cert.publicKey.verify(data, signature, algoritmo)) {
-                alert("Prueba existosa");
-              } else {
-                alert("Error al firmar");
-              }
+              console.log(privateKeyPem);
             });
-          } else {
-            alert("No fue posible desencriptar la llave");
-          }
-        });
+          })
+          .catch(e => {
+            alert("El password es incorrecto");
+            throw e;
+          });
       }
     } catch (e) {
       console.log(e);
