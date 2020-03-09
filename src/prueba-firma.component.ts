@@ -4,15 +4,8 @@ import { Vue } from "vue-property-decorator";
 import jseu from "js-encoding-utils";
 import keyutils from "js-crypto-key-utils";
 
-const asn1js = require("asn1js");
-const pkijs = require("pkijs");
-
-const Certificate = pkijs.Certificate;
-const AttributeTypeAndValue = pkijs.AttributeTypeAndValue;
-
-const rfcATV = new AttributeTypeAndValue({
-  type: "2.5.4.45"
-});
+var forge = require("node-forge");
+var pki = forge.pki;
 
 export class Options {
   constructor() {}
@@ -35,6 +28,8 @@ export default class PruebaFirmaComponent extends Vue {
   }
 
   public process() {
+    let ed25519 = forge.pki.ed25519;
+
     try {
       let keyObj = new keyutils.Key("der", new Uint8Array(this.keyFile));
 
@@ -44,7 +39,18 @@ export default class PruebaFirmaComponent extends Vue {
           .then(ok => {
             console.debug("decrypt: " + ok);
             keyObj.export("pem").then(privateKeyPem => {
-              console.log(privateKeyPem);
+              let privateKey = pki.privateKeyFromPem(privateKeyPem);
+              var md = forge.md.sha1.create();
+              md.update("sign this", "utf8");
+              var signature = privateKey.sign(md);
+
+              var verified = this.certFile.publicKey.verify(md.digest().bytes(), signature);
+
+              if (verified) {
+                alert("Prueba correcta");
+              } else {
+                alert("Prueba incorrecta");
+              }
             });
           })
           .catch(e => {
@@ -64,12 +70,10 @@ export default class PruebaFirmaComponent extends Vue {
 
   private setCertContent(content: ArrayBuffer) {
     try {
-      this.rfc = "";
-      const asn1 = asn1js.fromBER(content);
-      this.certFile = new Certificate({ schema: asn1.result });
-      this.rfc = this.certFile.subject.typesAndValues.find((a: { type: any }) => a.type === rfcATV.type)?.value.valueBlock.value;
+      const certPem = jseu.formatter.binToPem(content, "certificate");
+      this.certFile = pki.certificateFromPem(certPem);
     } catch (e) {
-      console.log("Certificado no válido");
+      console.log(e);
       alert("Certificado no válido");
     }
   }

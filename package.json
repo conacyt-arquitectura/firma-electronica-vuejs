@@ -25,10 +25,8 @@
     "/src"
   ],
   "dependencies": {
-    "@fidm/x509": "^1.2.1",
-    "asn1js": "^2.0.26",
     "js-crypto-key-utils": "^0.7.3",
-    "pkijs": "^2.1.86",
+    "node-forge": "^0.9.1",
     "tslib": "^1.10.0",
     "vue-class-component": "^7.1.0",
     "vue-property-decorator": "^8.2.1"
