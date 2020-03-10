@@ -56,7 +56,7 @@ export default class PruebaFirmaComponent extends Vue {
                 let md = forge.md.sha512.create();
                 md.update(info, "utf8"); //Cadena aleatoria para verificar el certificado y la llave
 
-                let signature = (<any>this.privateKey).sign(md);
+                let signature = this.privateKey.sign(md);
 
                 console.debug("Información codificada: " + forge.util.bytesToHex(signature));
 

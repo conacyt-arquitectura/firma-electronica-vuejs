@@ -1,44 +1,33 @@
 <template>
   <div>
-    <h1>PruebaFirma Component</h1>
-
-    <table>
-      <tr>
-        <td>Certificado</td>
-        <td>
-          <input id="cert" ref="cert" type="file" accept=".cer" v-on:change="handleCertUpload()" />
-        </td>
-      </tr>
-
-      <tr>
-        <td>Llave</td>
-        <td>
-          <input id="key" ref="key" type="file" accept=".key" v-on:change="handleKeyUpload()" />
-        </td>
-      </tr>
-
-      <tr>
-        <td>Password:</td>
-        <td><input id="password" type="password" v-model="password" /></td>
-      </tr>
-
-      <tr>
-        <td>RFC:</td>
-        <td>
-          <span v-text="rfc" />
-        </td>
-      </tr>
-
-      <tr>
-        <td>CURP:</td>
-        <td>
-          <span v-text="curp" />
-        </td>
-      </tr>
-    </table>
-
-    <input type="button" value="Validar" v-on:click="validar()" />
-    <input type="button" value="Firmar" v-on:click="firmar()" :disabled="invalidFiles" />
+    <form @submit.prevent="validar()" role="form">
+      <div>
+        <div class="form-group">
+          <label for="cert">Certificado: </label>
+          <input type="file" class="form-control" id="cert" ref="cert" accept=".cer" @change="handleCertUpload()" />
+        </div>
+        <div class="form-group">
+          <label for="cert">Llave privada: </label>
+          <input id="key" class="form-control" ref="key" type="file" accept=".key" v-on:change="handleKeyUpload()" />
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña: </label>
+          <input id="password" class="form-control" type="password" v-model="password" />
+        </div>
+        <div class="form-group">
+          <label for="rfc">RFC: </label>
+          <input type="text" class="form-control" id="rfc" v-model="rfc" disabled />
+        </div>
+        <div class="form-group">
+          <label for="curp">CURP: </label>
+          <input type="text" class="form-control" id="curp" v-model="curp" disabled />
+        </div>
+      </div>
+      <div>
+        <button type="button" class="btn btn-secondary" @click="validar()">Validar</button>
+        <button type="submit" class="btn btn-primary" value="Firmar" v-on:click="firmar()" :disabled="invalidFiles">Firmar</button>
+      </div>
+    </form>
   </div>
 </template>
 

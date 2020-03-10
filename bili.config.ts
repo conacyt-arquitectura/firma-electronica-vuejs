@@ -1,4 +1,4 @@
-import { Config } from 'bili';
+import { Config } from "bili";
 
 const config: Config = {
   input: "src/index.ts",
@@ -24,7 +24,7 @@ const config: Config = {
     }
     return config;
   },
-  externals: ["vue-class-component", "vue-property-decorator"]
-}
+  externals: ["vue-class-component", "vue-property-decorator", "bootstrap", "bootstrap-vue"]
+};
 
 export default config;
