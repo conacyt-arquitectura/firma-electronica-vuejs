@@ -20,7 +20,7 @@
       <tr>
         <td>RFC:</td>
         <td>
-          <input type="text" readonly v-model="rfc" />
+          <span v-text="rfc" />
         </td>
       </tr>
 
