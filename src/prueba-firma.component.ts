@@ -18,9 +18,13 @@ export { defaultConfig };
 export default class PruebaFirmaComponent extends Vue {
   password: string = "";
   rfc: string = "";
+  curp: string = "";
 
   private certFile: any;
   private keyFile: ArrayBuffer = new ArrayBuffer(0);
+
+  private allRequired = true;
+  private validFiles = false;
 
   public get options(): Options {
     return (<any>this).$PRUEBA_FIRMA_DEFAULT_OPTIONS || defaultConfig;
@@ -76,9 +80,33 @@ export default class PruebaFirmaComponent extends Vue {
   }
 
   private setCertContent(content: ArrayBuffer) {
+    this.curp = "";
+    this.rfc = "";
+
     try {
       const certPem = jseu.formatter.binToPem(content, "certificate");
       this.certFile = pki.certificateFromPem(certPem);
+
+      if (this.certFile.subject && this.certFile.subject.attributes) {
+        let attribute;
+
+        for (var idx in this.certFile.subject.attributes) {
+          attribute = this.certFile.subject.attributes[idx];
+
+          if (attribute.type === "2.5.4.45") {
+            this.rfc = attribute.value;
+          }
+          if (attribute.type === "2.5.4.5") {
+            this.curp = attribute.value;
+          }
+        }
+
+        if (this.rfc === "") {
+          throw "No se encontró el RFC";
+        }
+      } else {
+        throw "No se encontraron las entradas de atributos";
+      }
     } catch (e) {
       console.log(e);
       alert("Certificado no válido");

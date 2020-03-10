@@ -18,6 +18,11 @@
       </tr>
 
       <tr>
+        <td>Password:</td>
+        <td><input id="password" type="password" v-model="password" /></td>
+      </tr>
+
+      <tr>
         <td>RFC:</td>
         <td>
           <span v-text="rfc" />
@@ -25,8 +30,10 @@
       </tr>
 
       <tr>
-        <td>Password:</td>
-        <td><input id="password" type="password" v-model="password" /></td>
+        <td>CURP:</td>
+        <td>
+          <span v-text="curp" />
+        </td>
       </tr>
     </table>
 
