@@ -37,7 +37,8 @@
       </tr>
     </table>
 
-    <input type="button" value="Firmar" v-on:click="process()" />
+    <input type="button" value="Validar" v-on:click="validar()" />
+    <input type="button" value="Firmar" v-on:click="firmar()" :disabled="invalidFiles" />
   </div>
 </template>
 

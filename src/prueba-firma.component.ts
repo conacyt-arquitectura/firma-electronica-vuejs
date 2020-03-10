@@ -21,17 +21,22 @@ export default class PruebaFirmaComponent extends Vue {
   curp: string = "";
 
   private certFile: any;
+  private privateKey: any;
   private keyFile: ArrayBuffer = new ArrayBuffer(0);
 
-  private allRequired = true;
-  private validFiles = false;
+  invalidFiles = true;
 
   public get options(): Options {
     return (<any>this).$PRUEBA_FIRMA_DEFAULT_OPTIONS || defaultConfig;
   }
 
-  public process() {
-    let ed25519 = forge.pki.ed25519;
+  public validar() {
+    this.invalidFiles = true;
+    this.privateKey = null;
+
+    if (this.password === "" || this.certFile === null || this.keyFile.byteLength === 0) {
+      return;
+    }
 
     try {
       let keyObj = new keyutils.Key("der", new Uint8Array(this.keyFile));
@@ -42,25 +47,25 @@ export default class PruebaFirmaComponent extends Vue {
           .then(ok => {
             console.debug("decrypt: " + ok);
             keyObj.export("pem").then(privateKeyPem => {
-              let privateKey = pki.privateKeyFromPem(privateKeyPem.toString());
-              let info = forge.util.bytesToHex(forge.random.getBytesSync(50));
+              try {
+                this.privateKey = pki.privateKeyFromPem(privateKeyPem.toString());
+                let info = forge.util.bytesToHex(forge.random.getBytesSync(50));
 
-              console.debug("Información a codificar: " + info);
+                console.debug("Información a codificar: " + info);
 
-              let md = forge.md.sha512.create();
-              md.update(info, "utf8"); //Cadena aleatoria para verificar el certificado y la llave
+                let md = forge.md.sha512.create();
+                md.update(info, "utf8"); //Cadena aleatoria para verificar el certificado y la llave
 
-              let signature = (<any>privateKey).sign(md);
+                let signature = (<any>this.privateKey).sign(md);
 
-              console.debug("Información codificada: " + forge.util.bytesToHex(signature));
+                console.debug("Información codificada: " + forge.util.bytesToHex(signature));
 
-              let verified = this.certFile.publicKey.verify(md.digest().bytes(), signature);
+                this.certFile.publicKey.verify(md.digest().bytes(), signature);
 
-              if (verified) {
-                alert("El certificado y la llave son válidos");
-                // En este punto se podría cifrar la "cadena original"
-              } else {
-                alert("Prueba incorrecta");
+                this.invalidFiles = false;
+              } catch (e) {
+                alert("La llave y el certificado no coinciden");
+                throw e;
               }
             });
           })
@@ -75,11 +80,25 @@ export default class PruebaFirmaComponent extends Vue {
     }
   }
 
+  public firmar() {
+    if (this.privateKey !== null) {
+      let cadena = "Esto es una prueba de cifrado";
+
+      let md = forge.md.sha512.create();
+      md.update(cadena, "utf8");
+
+      let signature = this.privateKey.sign(md);
+
+      console.log("Cadea cifrada: " + forge.util.bytesToHex(signature));
+    }
+  }
+
   public handleCertUpload() {
     this.getData((<any>this.$refs.cert).files[0], this.setCertContent);
   }
 
   private setCertContent(content: ArrayBuffer) {
+    this.invalidFiles = true;
     this.curp = "";
     this.rfc = "";
 
@@ -118,6 +137,9 @@ export default class PruebaFirmaComponent extends Vue {
   }
 
   private setKeyContent(content: ArrayBuffer) {
+    this.invalidFiles = true;
+    this.privateKey = null;
+
     try {
       let tmp = new keyutils.Key("der", new Uint8Array(content));
       if (!tmp.isPrivate || !tmp.isEncrypted) {
