@@ -39,17 +39,22 @@ export default class PruebaFirmaComponent extends Vue {
             console.debug("decrypt: " + ok);
             keyObj.export("pem").then(privateKeyPem => {
               let privateKey = pki.privateKeyFromPem(privateKeyPem.toString());
-              var md = forge.md.sha512.create();
-              md.update(Math.random().toString(36).substring(7), "utf8"); //Cadena aleatoria para verificar el certificado y la llave
+              let info = forge.util.bytesToHex(forge.random.getBytesSync(50));
 
-              var signature = (<any> privateKey).sign(md);
+              console.debug("Información a codificar: " + info);
 
-              console.log(forge.util.bytesToHex(signature));
+              let md = forge.md.sha512.create();
+              md.update(info, "utf8"); //Cadena aleatoria para verificar el certificado y la llave
 
-              var verified = this.certFile.publicKey.verify(md.digest().bytes(), signature);
+              let signature = (<any>privateKey).sign(md);
+
+              console.debug("Información codificada: " + forge.util.bytesToHex(signature));
+
+              let verified = this.certFile.publicKey.verify(md.digest().bytes(), signature);
 
               if (verified) {
-                alert("Prueba correcta");
+                alert("El certificado y la llave son válidos");
+                // En este punto se podría cifrar la "cadena original"
               } else {
                 alert("Prueba incorrecta");
               }
@@ -62,7 +67,7 @@ export default class PruebaFirmaComponent extends Vue {
       }
     } catch (e) {
       console.log(e);
-      alert("Ocurrió un error al firmr");
+      alert("Ocurrió un error al firmar");
     }
   }
 
