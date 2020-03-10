@@ -4,14 +4,13 @@ import { Vue } from "vue-property-decorator";
 import jseu from "js-encoding-utils";
 import keyutils from "js-crypto-key-utils";
 
-var forge = require("node-forge");
+import forge from "node-forge";
+
 var pki = forge.pki;
 
 export class Options {
   constructor() {}
 }
-
-const algoritmo = "sha512";
 
 let defaultConfig = new Options();
 export { defaultConfig };
@@ -39,10 +38,13 @@ export default class PruebaFirmaComponent extends Vue {
           .then(ok => {
             console.debug("decrypt: " + ok);
             keyObj.export("pem").then(privateKeyPem => {
-              let privateKey = pki.privateKeyFromPem(privateKeyPem);
-              var md = forge.md.sha1.create();
-              md.update("sign this", "utf8");
-              var signature = privateKey.sign(md);
+              let privateKey = pki.privateKeyFromPem(privateKeyPem.toString());
+              var md = forge.md.sha512.create();
+              md.update(Math.random().toString(36).substring(7), "utf8"); //Cadena aleatoria para verificar el certificado y la llave
+
+              var signature = (<any> privateKey).sign(md);
+
+              console.log(forge.util.bytesToHex(signature));
 
               var verified = this.certFile.publicKey.verify(md.digest().bytes(), signature);
 
