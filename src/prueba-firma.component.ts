@@ -1,5 +1,5 @@
 import Component from "vue-class-component";
-import { Vue } from "vue-property-decorator";
+import { Vue, Prop } from "vue-property-decorator";
 
 import jseu from "js-encoding-utils";
 import keyutils from "js-crypto-key-utils";
@@ -16,8 +16,14 @@ let defaultConfig = new Options();
 export { defaultConfig };
 @Component
 export default class PruebaFirmaComponent extends Vue {
+  @Prop({ required: true, type: String })
+  readonly data!: string;
+
+  @Prop({ required: true, type: String })
+  readonly rfc!: string;
+
   password: string = "";
-  rfc: string = "";
+  cerRfc: string = "";
   curp: string = "";
 
   private certFile: any;
@@ -82,25 +88,22 @@ export default class PruebaFirmaComponent extends Vue {
 
   public firmar() {
     if (this.privateKey !== null) {
-      let cadena = "Esto es una prueba de cifrado";
-
       let md = forge.md.sha512.create();
-      md.update(cadena, "utf8");
-
+      md.update(this.data, "utf8");
       let signature = this.privateKey.sign(md);
-
-      console.log("Cadea cifrada: " + forge.util.bytesToHex(signature));
+      this.$emit("input", { cer: this.certFile, signature: signature });
+      console.log("Cadena cifrada: " + forge.util.bytesToHex(signature));
     }
   }
 
   public handleCertUpload() {
-    this.getData((<any>this.$refs.cert).files[0], this.setCertContent);
+    this.getData((this.$refs.cert as any).files[0], this.setCertContent);
   }
 
   private setCertContent(content: ArrayBuffer) {
     this.invalidFiles = true;
     this.curp = "";
-    this.rfc = "";
+    this.cerRfc = "";
 
     try {
       const certPem = jseu.formatter.binToPem(content, "certificate");
@@ -113,16 +116,19 @@ export default class PruebaFirmaComponent extends Vue {
           attribute = this.certFile.subject.attributes[idx];
 
           if (attribute.type === "2.5.4.45") {
-            this.rfc = attribute.value;
+            this.cerRfc = attribute.value;
           }
           if (attribute.type === "2.5.4.5") {
             this.curp = attribute.value;
           }
         }
 
-        if (this.rfc === "") {
+        if (this.cerRfc === "") {
           throw "No se encontró el RFC";
+        } else if (this.cerRfc !== this.rfc) {
+          throw "El certificado no pertenece a la persona de quien se requiere la firma";
         }
+        this.$emit("uploadedCer");
       } else {
         throw "No se encontraron las entradas de atributos";
       }
