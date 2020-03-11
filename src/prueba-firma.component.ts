@@ -1,12 +1,12 @@
 import Component from "vue-class-component";
 import { Vue, Prop } from "vue-property-decorator";
 
-import jseu from "js-encoding-utils";
 import keyutils from "js-crypto-key-utils";
 
 import forge from "node-forge";
 
 var pki = forge.pki;
+var asn1 = forge.asn1;
 
 export class Options {
   constructor() {}
@@ -106,8 +106,8 @@ export default class PruebaFirmaComponent extends Vue {
     this.cerRfc = "";
 
     try {
-      const certPem = jseu.formatter.binToPem(content, "certificate");
-      this.certFile = pki.certificateFromPem(certPem);
+      let asn1Obj = asn1.fromDer(new forge.util.ByteStringBuffer(content));
+      this.certFile = pki.certificateFromAsn1(asn1Obj);
 
       if (this.certFile.subject && this.certFile.subject.attributes) {
         let attribute;
