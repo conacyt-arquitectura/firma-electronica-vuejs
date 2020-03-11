@@ -1,12 +1,7 @@
 import Component from "vue-class-component";
 import { Vue, Prop } from "vue-property-decorator";
 
-import keyutils from "js-crypto-key-utils";
-
-import forge from "node-forge";
-
-var pki = forge.pki;
-var asn1 = forge.asn1;
+import forge, { pki, asn1 } from "node-forge";
 
 export class Options {
   constructor() {}
@@ -28,7 +23,7 @@ export default class PruebaFirmaComponent extends Vue {
 
   private certFile: any;
   private privateKey: any;
-  private keyFile: ArrayBuffer = new ArrayBuffer(0);
+  private cryptedPrivateKey: asn1.Asn1 | undefined;
 
   invalidFiles = true;
 
@@ -40,49 +35,26 @@ export default class PruebaFirmaComponent extends Vue {
     this.invalidFiles = true;
     this.privateKey = null;
 
-    if (this.password === "" || this.certFile === null || this.keyFile.byteLength === 0) {
+    if (this.password === "" || this.certFile === null || this.cryptedPrivateKey === null || this.cryptedPrivateKey === undefined) {
       return;
-    }
+    } else {
+      try {
+        this.privateKey = pki.decryptRsaPrivateKey(pki.encryptedPrivateKeyToPem(this.cryptedPrivateKey), this.password);
 
-    try {
-      let keyObj = new keyutils.Key("der", new Uint8Array(this.keyFile));
+        if (this.privateKey === null) {
+          alert("La llave no es válida");
+        } else {
+          let info = forge.util.bytesToHex(forge.random.getBytesSync(50)); //Cadena aleatoria para verificar el certificado y la llave
+          let md = forge.md.sha512.create();
+          md.update(info, "utf8");
 
-      if (keyObj.isEncrypted) {
-        keyObj
-          .decrypt(this.password)
-          .then(ok => {
-            console.debug("decrypt: " + ok);
-            keyObj.export("pem").then(privateKeyPem => {
-              try {
-                this.privateKey = pki.privateKeyFromPem(privateKeyPem.toString());
-                let info = forge.util.bytesToHex(forge.random.getBytesSync(50));
-
-                console.debug("Información a codificar: " + info);
-
-                let md = forge.md.sha512.create();
-                md.update(info, "utf8"); //Cadena aleatoria para verificar el certificado y la llave
-
-                let signature = this.privateKey.sign(md);
-
-                console.debug("Información codificada: " + forge.util.bytesToHex(signature));
-
-                this.certFile.publicKey.verify(md.digest().bytes(), signature);
-
-                this.invalidFiles = false;
-              } catch (e) {
-                alert("La llave y el certificado no coinciden");
-                throw e;
-              }
-            });
-          })
-          .catch(e => {
-            alert("El password es incorrecto");
-            throw e;
-          });
+          this.certFile.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
+          this.invalidFiles = false;
+        }
+      } catch (e) {
+        console.log(e);
+        alert("No se pudo validar el certificado, verifique que el password y los archivos son válidos");
       }
-    } catch (e) {
-      console.log(e);
-      alert("Ocurrió un error al firmar");
     }
   }
 
@@ -106,7 +78,7 @@ export default class PruebaFirmaComponent extends Vue {
     this.cerRfc = "";
 
     try {
-      let asn1Obj = asn1.fromDer(new forge.util.ByteStringBuffer(content));
+      const asn1Obj = asn1.fromDer(new forge.util.ByteStringBuffer(content));
       this.certFile = pki.certificateFromAsn1(asn1Obj);
 
       if (this.certFile.subject && this.certFile.subject.attributes) {
@@ -147,12 +119,7 @@ export default class PruebaFirmaComponent extends Vue {
     this.privateKey = null;
 
     try {
-      let tmp = new keyutils.Key("der", new Uint8Array(content));
-      if (!tmp.isPrivate || !tmp.isEncrypted) {
-        throw "No es una llve privada ni cifrada";
-      } else {
-        this.keyFile = content;
-      }
+      this.cryptedPrivateKey = asn1.fromDer(new forge.util.ByteStringBuffer(content));
     } catch (e) {
       console.log("Llave no válida");
       alert("Llave no válida");
