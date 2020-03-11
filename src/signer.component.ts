@@ -35,7 +35,7 @@ export default class SignerComponent extends Vue {
     this.invalidFiles = true;
     this.privateKey = null;
 
-    if (this.password === "" || this.certFile === null || this.cryptedPrivateKey === null || this.cryptedPrivateKey === undefined) {
+    if (this.password === "" || this.certFile === null || this.cryptedPrivateKey === null || this.cryptedPrivateKey === undefined || this.rfc != this.cerRfc) {
       return;
     } else {
       try {
