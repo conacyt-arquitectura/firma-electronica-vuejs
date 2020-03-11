@@ -7,7 +7,7 @@
       <div class="col-4" />
       <div class="col-4">
         <strong>Se espera la firma de la persona con RFC {{ rfc }}</strong>
-        <prueba-firma v-model="model" :data="cadenaOriginal" :rfc="rfc" @uploadedCer="uploadedCer"></prueba-firma>
+        <signer v-model="model" :data="cadenaOriginal" :rfc="rfc" @uploadedCer="uploadedCer"></signer>
       </div>
       <div class="col-4" />
     </div>
@@ -30,11 +30,11 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from "vue";
-import PruebaFirmaComponent from "../src/index";
+import SignerComponent from "../src/index";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-Vue.use(PruebaFirmaComponent, {});
+Vue.use(SignerComponent, {});
 
 export default Vue.extend({
   data: function() {

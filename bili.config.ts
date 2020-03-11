@@ -4,7 +4,7 @@ const config: Config = {
   input: "src/index.ts",
   output: {
     format: ["cjs", "umd", "esm"],
-    moduleName: "prueba-firma",
+    moduleName: "signer",
     sourceMap: true,
     sourceMapExcludeSources: true
   },

@@ -10,7 +10,7 @@ export class Options {
 let defaultConfig = new Options();
 export { defaultConfig };
 @Component
-export default class PruebaFirmaComponent extends Vue {
+export default class SignerComponent extends Vue {
   @Prop({ required: true, type: String })
   readonly data!: string;
 

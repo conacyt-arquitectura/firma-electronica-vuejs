@@ -1,14 +1,14 @@
-# PruebaFirma
+# Signer
 
 ## Getting started
-To install with npm use `npm i prueba-firma`
-To install with yarn use `yarn add prueba-firma`
+To install with npm use `npm i signer`
+To install with yarn use `yarn add signer`
 
 ## Usage
 ```
-import PruebaFirma from 'prueba-firma';
+import Signer from 'signer';
 
-Vue.use(PruebaFirma);
+Vue.use(Signer);
 
 new Vue({
     el: '#app'
@@ -17,7 +17,7 @@ new Vue({
 
 ```
 <div id="app">
-    <prueba-firma></prueba-firma>
+    <signer></signer>
 </div>
 ```
 

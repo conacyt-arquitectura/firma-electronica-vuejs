@@ -31,4 +31,4 @@
   </div>
 </template>
 
-<script lang="ts" src="./prueba-firma.component.ts"></script>
+<script lang="ts" src="./signer.component.ts"></script>
