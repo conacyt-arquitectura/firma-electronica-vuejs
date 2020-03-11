@@ -81,7 +81,11 @@ export default class SignerComponent extends Vue {
       const asn1Obj = asn1.fromDer(new forge.util.ByteStringBuffer(content));
       this.certFile = pki.certificateFromAsn1(asn1Obj);
 
-      if (this.certFile.subject && this.certFile.subject.attributes) {
+      const today = new Date();
+
+      if (this.certFile.validity.notBefore > today || this.certFile.validity.notAfter < today) {
+        throw "La fecha del certificado no es válida";
+      } else if (this.certFile.subject && this.certFile.subject.attributes) {
         let attribute;
 
         for (var idx in this.certFile.subject.attributes) {
