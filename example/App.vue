@@ -7,7 +7,7 @@
       <div class="col-4" />
       <div class="col-4">
         <strong>Se espera la firma de la persona con RFC {{ rfc }}</strong>
-        <signer v-model="model" :data="cadenaOriginal" :rfc="rfc" @uploadedCer="uploadedCer"></signer>
+        <signer v-model="model" :data="cadenaOriginal" :rfc="rfc" @certificateLoaded="certificateLoaded"></signer>
       </div>
       <div class="col-4" />
     </div>
@@ -45,8 +45,8 @@ export default Vue.extend({
     };
   },
   methods: {
-    uploadedCer: function() {
-      console.log("Se ha cargado el certificado");
+    certificateLoaded: function(cer: string) {
+      console.log("Se ha cargado el certificado: \n", cer);
     }
   }
 });

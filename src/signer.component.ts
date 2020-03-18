@@ -105,7 +105,8 @@ export default class SignerComponent extends Vue {
         } else if (this.cerRfc !== this.rfc) {
           throw "El certificado no pertenece a la persona de quien se requiere la firma";
         }
-        this.$emit("uploadedCer");
+        this.$emit("input", { cer: this.certificatePem });
+        this.$emit("certificateLoaded", this.certificatePem);
       } else {
         throw "No se encontraron las entradas de atributos";
       }
