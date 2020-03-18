@@ -21,7 +21,8 @@ export default class SignerComponent extends Vue {
   cerRfc: string = "";
   curp: string = "";
 
-  private certFile: any;
+  private certificateX509: any;
+  private certificatePem = "";
   private privateKey: any;
   private cryptedPrivateKey: asn1.Asn1 | undefined;
 
@@ -35,7 +36,7 @@ export default class SignerComponent extends Vue {
     this.invalidFiles = true;
     this.privateKey = null;
 
-    if (this.password === "" || this.certFile === null || this.cryptedPrivateKey === null || this.cryptedPrivateKey === undefined || this.rfc != this.cerRfc) {
+    if (this.password === "" || this.certificateX509 === null || this.cryptedPrivateKey === null || this.cryptedPrivateKey === undefined || this.rfc != this.cerRfc) {
       return;
     } else {
       try {
@@ -48,7 +49,7 @@ export default class SignerComponent extends Vue {
           let md = forge.md.sha256.create();
           md.update(info, "utf8");
 
-          this.certFile.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
+          this.certificateX509.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
           this.invalidFiles = false;
         }
       } catch (e) {
@@ -63,8 +64,7 @@ export default class SignerComponent extends Vue {
       let md = forge.md.sha256.create();
       md.update(this.data, "utf8");
       let signature = this.privateKey.sign(md);
-      this.$emit("input", { cer: this.certFile, signature: signature });
-      console.log("Cadena cifrada: " + forge.util.bytesToHex(signature));
+      this.$emit("input", { cer: this.certificatePem, signature: forge.util.encode64(signature) });
     }
   }
 
@@ -79,17 +79,18 @@ export default class SignerComponent extends Vue {
 
     try {
       const asn1Obj = asn1.fromDer(new forge.util.ByteStringBuffer(content));
-      this.certFile = pki.certificateFromAsn1(asn1Obj);
+      this.certificateX509 = pki.certificateFromAsn1(asn1Obj);
+      this.certificatePem = pki.certificateToPem(this.certificateX509);
 
       const today = new Date();
 
-      if (this.certFile.validity.notBefore > today || this.certFile.validity.notAfter < today) {
+      if (this.certificateX509.validity.notBefore > today || this.certificateX509.validity.notAfter < today) {
         throw "La fecha del certificado no es válida";
-      } else if (this.certFile.subject && this.certFile.subject.attributes) {
+      } else if (this.certificateX509.subject && this.certificateX509.subject.attributes) {
         let attribute;
 
-        for (var idx in this.certFile.subject.attributes) {
-          attribute = this.certFile.subject.attributes[idx];
+        for (var idx in this.certificateX509.subject.attributes) {
+          attribute = this.certificateX509.subject.attributes[idx];
 
           if (attribute.type === "2.5.4.45") {
             this.cerRfc = attribute.value;
