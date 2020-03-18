@@ -45,7 +45,7 @@ export default class SignerComponent extends Vue {
           alert("La llave no es válida");
         } else {
           let info = forge.util.bytesToHex(forge.random.getBytesSync(50)); //Cadena aleatoria para verificar el certificado y la llave
-          let md = forge.md.sha512.create();
+          let md = forge.md.sha256.create();
           md.update(info, "utf8");
 
           this.certFile.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
@@ -60,7 +60,7 @@ export default class SignerComponent extends Vue {
 
   public firmar() {
     if (this.privateKey !== null) {
-      let md = forge.md.sha512.create();
+      let md = forge.md.sha256.create();
       md.update(this.data, "utf8");
       let signature = this.privateKey.sign(md);
       this.$emit("input", { cer: this.certFile, signature: signature });
