@@ -16,7 +16,7 @@
         </div>
         <div class="form-group">
           <label for="rfc">RFC: </label>
-          <input type="text" class="form-control" id="rfc" v-model="rfc" disabled />
+          <input type="text" class="form-control" id="rfc" v-model="cerRfc" disabled />
         </div>
         <div class="form-group">
           <label for="curp">CURP: </label>
@@ -24,7 +24,7 @@
         </div>
       </div>
       <div>
-        <button type="button" class="btn btn-secondary" @click="validar()">Validar</button>
+        <button type="button" class="btn btn-secondary" @click="validar()" :disabled="!isCerValid">Validar</button>
         <button type="submit" class="btn btn-primary" value="Firmar" v-on:click="firmar()" :disabled="invalidFiles">Firmar</button>
       </div>
     </form>
