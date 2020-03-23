@@ -39,6 +39,9 @@ import Vue, { VueConstructor } from "vue";
 import SignerComponent from "../src/index";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Vuelidate from "vuelidate";
+
+Vue.use(Vuelidate);
 
 Vue.use(SignerComponent, {
   cerValidator: function(cer: string) {
@@ -66,7 +69,7 @@ const producer = function(page: number) {
   return null;
 };
 
-const cadenaOriginal = null;
+const cadenaOriginal = "CadenaOriginal";
 
 export default Vue.extend({
   data: function() {

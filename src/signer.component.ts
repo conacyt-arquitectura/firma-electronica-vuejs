@@ -1,7 +1,9 @@
 import Component from "vue-class-component";
 import { Vue, Prop } from "vue-property-decorator";
+import Vuelidate from "vuelidate";
 
 import forge, { pki, asn1 } from "node-forge";
+import { sameAs, required } from "vuelidate/lib/validators";
 
 export class Options {
   public cerValidator = function(_cer: string) {
@@ -14,15 +16,36 @@ export class Options {
 let defaultConfig = new Options();
 export { defaultConfig };
 
-@Component
+const stillValid = (value: any, vm: any) => {
+  if (!vm.certificateX509) return true;
+  const today = new Date();
+  return today < vm.certificateX509.validity.notAfter;
+};
+
+const alreadyValid = (value: any, vm: any) => {
+  if (!vm.certificateX509) return true;
+  const today = new Date();
+  return today > vm.certificateX509.validity.notBefore;
+};
+@Component({
+  validations: {
+    certificatePem: {
+      alreadyValid,
+      stillValid
+    },
+    cerRfc: {
+      required,
+      sameAsExpected: sameAs("rfc")
+    },
+    password: {
+      required
+    }
+  }
+})
 export default class SignerComponent extends Vue {
   @Prop({
     required: false,
-    type: String,
-    validator: value => {
-      // return value !== undefined && value !== null && value !== "";
-      return true;
-    }
+    type: String
   })
   readonly data!: string;
 
@@ -35,14 +58,14 @@ export default class SignerComponent extends Vue {
   @Prop({ required: false, type: Function })
   readonly consumer!: Function;
 
-  password: string = "";
-  cerRfc: string = "";
-  curp: string = "";
+  private password: string = "";
+  public cerRfc: string = "";
+  public curp: string = "";
 
-  private certificateX509: any;
-  private certificatePem = "";
+  public certificateX509: any;
+  public certificatePem = "";
   private privateKey: any;
-  private cryptedPrivateKey: asn1.Asn1 | undefined;
+  private cryptedPrivateKey!: asn1.Asn1;
   private currentPageNumber = 1;
 
   invalidFiles = true;
@@ -56,26 +79,23 @@ export default class SignerComponent extends Vue {
     this.invalidFiles = true;
     this.privateKey = null;
 
-    if (this.password === "" || this.certificateX509 === null || this.cryptedPrivateKey === null || this.cryptedPrivateKey === undefined || this.rfc != this.cerRfc) {
-      return;
-    } else {
-      try {
-        this.privateKey = pki.decryptRsaPrivateKey(pki.encryptedPrivateKeyToPem(this.cryptedPrivateKey), this.password);
+    try {
+      this.privateKey = pki.decryptRsaPrivateKey(pki.encryptedPrivateKeyToPem(this.cryptedPrivateKey), this.password);
 
-        if (this.privateKey === null) {
-          alert("La llave no es válida");
-        } else {
-          let info = forge.util.bytesToHex(forge.random.getBytesSync(50)); //Cadena aleatoria para verificar el certificado y la llave
-          let md = forge.md.sha256.create();
-          md.update(info, "utf8");
+      if (this.privateKey === null) {
+        alert("La llave no es válida");
+      } else {
+        let info = forge.util.bytesToHex(forge.random.getBytesSync(50)); //Cadena aleatoria para verificar el certificado y la llave
+        let md = forge.md.sha256.create();
+        md.update(info, "utf8");
 
-          this.certificateX509.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
-          this.invalidFiles = false;
-        }
-      } catch (e) {
-        console.log(e);
-        alert("No se pudo validar el certificado, verifique que el password y los archivos son válidos");
+        this.certificateX509.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
+        this.invalidFiles = false;
+        this.isCerValid = this.options.cerValidator(this.certificatePem);
       }
+    } catch (e) {
+      console.log(e);
+      alert("No se pudo validar el certificado, verifique que el password y los archivos son válidos");
     }
   }
 
@@ -88,6 +108,7 @@ export default class SignerComponent extends Vue {
   }
 
   public firmarMultiple() {
+    this.$emit("input", { cer: this.certificatePem });
     let page: any;
     do {
       page = this.producer(this.currentPageNumber);
@@ -105,22 +126,24 @@ export default class SignerComponent extends Vue {
 
   public firmarIndividual() {
     const signature = this.firmarData(this.data);
-    this.$emit("input", { cer: this.certificatePem, signature: forge.util.encode64(signature) });
+    this.$emit("input", { cer: this.certificatePem, signature: signature });
   }
 
   private firmarData(data: string) {
     let md = forge.md.sha256.create();
     md.update(data, "utf8");
-    let signature = this.privateKey.sign(md);
+    const signature = this.privateKey.sign(md);
     return forge.util.encode64(signature);
   }
 
   public handleCertUpload() {
+    this.invalidFiles = true;
+    this.isCerValid = false;
+    this.$v.certificatePem?.$reset();
     this.getData((this.$refs.cert as any).files[0], this.setCertContent);
   }
 
   private setCertContent(content: ArrayBuffer) {
-    this.invalidFiles = true;
     this.curp = "";
     this.cerRfc = "";
 
@@ -128,12 +151,9 @@ export default class SignerComponent extends Vue {
       const asn1Obj = asn1.fromDer(new forge.util.ByteStringBuffer(content));
       this.certificateX509 = pki.certificateFromAsn1(asn1Obj);
       this.certificatePem = pki.certificateToPem(this.certificateX509);
+      this.$v.certificatePem?.$touch();
 
-      const today = new Date();
-
-      if (this.certificateX509.validity.notBefore > today || this.certificateX509.validity.notAfter < today) {
-        throw "La fecha del certificado no es válida";
-      } else if (this.certificateX509.subject && this.certificateX509.subject.attributes) {
+      if (this.certificateX509.subject && this.certificateX509.subject.attributes) {
         let attribute;
 
         for (var idx in this.certificateX509.subject.attributes) {
@@ -146,14 +166,6 @@ export default class SignerComponent extends Vue {
             this.curp = attribute.value;
           }
         }
-
-        if (this.cerRfc === "") {
-          throw "No se encontró el RFC";
-        } else if (this.cerRfc !== this.rfc) {
-          throw "El certificado no pertenece a la persona de quien se requiere la firma";
-        }
-        this.$emit("input", { cer: this.certificatePem });
-        this.isCerValid = this.options.cerValidator(this.certificatePem);
       } else {
         throw "No se encontraron las entradas de atributos";
       }
