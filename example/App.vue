@@ -1,11 +1,21 @@
 <template>
   <div id="app">
     <div class="row justify-content-center">
-      <h1>Componente de Firma Electrónica</h1>
+      <h1 v-text="$t('title')"></h1>
     </div>
     <div class="row">
       <div class="col-4" />
       <div class="col-4">
+        <form name="preferences" role="form" @submit.prevent>
+          <div class="form-group">
+            <label for="localeSelect">
+              <span v-text="$t('language')">Idioma</span>
+            </label>
+            <select name="localeSelect" id="localeSelect" v-model="$i18n.locale">
+              <option v-bind:value="locale" v-for="locale in availableLocales" :key="locale">{{ locale }}</option>
+            </select>
+          </div>
+        </form>
         <div class="form-group">
           <select name="example" id="example" v-model="example" @change="changeExample">
             <option value="single">Firma individual</option>
@@ -40,8 +50,29 @@ import SignerComponent from "../src/index";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Vuelidate from "vuelidate";
+import VueI18n from "vue-i18n";
+import i18nEn from "../src/i18n/en/signer.json";
+import i18nEs from "../src/i18n/es/signer.json";
 
+Vue.use(VueI18n);
 Vue.use(Vuelidate);
+
+const i18n = new VueI18n({
+  locale: "es",
+  messages: {
+    en: {
+      title: "Electronic Signature Component",
+      language: "Language"
+    },
+    es: {
+      title: "Componente de Firma Electrónica",
+      language: "Idioma"
+    }
+  }
+});
+
+i18n.mergeLocaleMessage("es", i18nEs);
+i18n.mergeLocaleMessage("en", i18nEn);
 
 Vue.use(SignerComponent, {
   cerValidator: function(cer: string) {
@@ -72,6 +103,7 @@ const producer = function(page: number) {
 const cadenaOriginal = "CadenaOriginal";
 
 export default Vue.extend({
+  i18n,
   data: function() {
     return {
       model: {},
@@ -100,6 +132,11 @@ export default Vue.extend({
         certificado: (this.model as any).cer,
         firmas: firmas
       });
+    }
+  },
+  computed: {
+    availableLocales: function() {
+      return Object.keys(this.$i18n.messages);
     }
   }
 });

@@ -1,0 +1,22 @@
+{
+  "signer": {
+    "certificate": "Certificate",
+    "privateKey": "Private key",
+    "password": "Password",
+    "rfc": {
+      "title": "RFC",
+      "notFound": "RFC was not found in certificate",
+      "notSameAsExpected": "The certificate does not belong to the person whose signature is required"
+    },
+    "curp": "CURP",
+    "validate": "Validate",
+    "sign": "Sign",
+    "validation": {
+      "required": "This field is required",
+      "wrongPassword": "Password seems to be wrong",
+      "disparity": "Error while verifying parity. Check that key corresponds to certificate.",
+      "unparseableCertificate": "Unparseable certificate",
+      "unparseablePrivateKey": "Unparseable private key"
+    }
+  }
+}

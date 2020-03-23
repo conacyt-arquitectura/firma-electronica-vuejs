@@ -1,0 +1,22 @@
+{
+  "signer": {
+    "certificate": "Certificado",
+    "privateKey": "Llave privada",
+    "password": "Contraseña",
+    "rfc": {
+      "title": "RFC",
+      "notFound": "No se encontró el RFC en el certificado",
+      "notSameAsExpected": "El certificado no pertenece a la persona de quien se requiere la firma"
+    },
+    "curp": "CURP",
+    "validate": "Validar",
+    "sign": "Firmar",
+    "validation": {
+      "required": "Este campo es requerido",
+      "wrongPassword": "Parece que la contraseña es incorrecta",
+      "disparity": "Error al verificar la paridad. Revise que la llave corresponde al certificado.",
+      "unparseableCertificate": "Certificado ilegible",
+      "unparseablePrivateKey": "Llave privada ilegible"
+    }
+  }
+}

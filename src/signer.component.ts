@@ -1,6 +1,9 @@
 import Component from "vue-class-component";
 import { Vue, Prop } from "vue-property-decorator";
 import Vuelidate from "vuelidate";
+import { IVueI18n } from "vue-i18n/types/index";
+import i18nEn from "@/i18n/en/signer.json";
+import i18nEs from "@/i18n/es/signer.json";
 
 import forge, { pki, asn1 } from "node-forge";
 import { sameAs, required } from "vuelidate/lib/validators";
@@ -68,8 +71,20 @@ export default class SignerComponent extends Vue {
   private cryptedPrivateKey!: asn1.Asn1;
   private currentPageNumber = 1;
 
-  invalidFiles = true;
+  public invalidFiles = true;
   public isCerValid = false;
+
+  public unparseableCertificate = false;
+  public unparseablePrivateKey = false;
+  public wrongPassword = false;
+  public disparity = false;
+
+  created() {
+    if (this.$i18n) {
+      this.$i18n.mergeLocaleMessage("es", i18nEs);
+      this.$i18n.mergeLocaleMessage("en", i18nEn);
+    }
+  }
 
   public get options(): Options {
     return (<any>this).$SIGNER_DEFAULT_OPTIONS || defaultConfig;
@@ -78,12 +93,14 @@ export default class SignerComponent extends Vue {
   public validar() {
     this.invalidFiles = true;
     this.privateKey = null;
+    this.disparity = false;
+    this.wrongPassword = false;
 
     try {
       this.privateKey = pki.decryptRsaPrivateKey(pki.encryptedPrivateKeyToPem(this.cryptedPrivateKey), this.password);
 
       if (this.privateKey === null) {
-        alert("La llave no es válida");
+        this.wrongPassword = true;
       } else {
         let info = forge.util.bytesToHex(forge.random.getBytesSync(50)); //Cadena aleatoria para verificar el certificado y la llave
         let md = forge.md.sha256.create();
@@ -94,8 +111,7 @@ export default class SignerComponent extends Vue {
         this.isCerValid = this.options.cerValidator(this.certificatePem);
       }
     } catch (e) {
-      console.log(e);
-      alert("No se pudo validar el certificado, verifique que el password y los archivos son válidos");
+      this.disparity = true;
     }
   }
 
@@ -146,6 +162,7 @@ export default class SignerComponent extends Vue {
   private setCertContent(content: ArrayBuffer) {
     this.curp = "";
     this.cerRfc = "";
+    this.unparseableCertificate = false;
 
     try {
       const asn1Obj = asn1.fromDer(new forge.util.ByteStringBuffer(content));
@@ -153,25 +170,20 @@ export default class SignerComponent extends Vue {
       this.certificatePem = pki.certificateToPem(this.certificateX509);
       this.$v.certificatePem?.$touch();
 
-      if (this.certificateX509.subject && this.certificateX509.subject.attributes) {
-        let attribute;
+      let attribute;
 
-        for (var idx in this.certificateX509.subject.attributes) {
-          attribute = this.certificateX509.subject.attributes[idx];
+      for (var idx in this.certificateX509.subject.attributes) {
+        attribute = this.certificateX509.subject.attributes[idx];
 
-          if (attribute.type === "2.5.4.45") {
-            this.cerRfc = attribute.value;
-          }
-          if (attribute.type === "2.5.4.5") {
-            this.curp = attribute.value;
-          }
+        if (attribute.type === "2.5.4.45") {
+          this.cerRfc = attribute.value;
         }
-      } else {
-        throw "No se encontraron las entradas de atributos";
+        if (attribute.type === "2.5.4.5") {
+          this.curp = attribute.value;
+        }
       }
     } catch (e) {
-      console.log(e);
-      alert("Certificado no válido");
+      this.unparseableCertificate = true;
     }
   }
 
@@ -182,12 +194,12 @@ export default class SignerComponent extends Vue {
   private setKeyContent(content: ArrayBuffer) {
     this.invalidFiles = true;
     this.privateKey = null;
+    this.unparseablePrivateKey = false;
 
     try {
       this.cryptedPrivateKey = asn1.fromDer(new forge.util.ByteStringBuffer(content));
     } catch (e) {
-      console.log("Llave no válida");
-      alert("Llave no válida");
+      this.unparseablePrivateKey = true;
     }
   }
 
