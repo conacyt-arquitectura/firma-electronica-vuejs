@@ -161,3 +161,8 @@ Desktop.ini
 /.apt_generated_tests/
 
 /dist
+
+#####################
+# Bili
+#####################
+.rpt2_cache/

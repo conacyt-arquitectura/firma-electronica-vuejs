@@ -5,7 +5,9 @@ import { IVueI18n } from "vue-i18n/types/index";
 import i18nEn from "@/i18n/en/signer.json";
 import i18nEs from "@/i18n/es/signer.json";
 
-import forge, { pki, asn1 } from "node-forge";
+import forge from "node-forge";
+const pki = forge.pki;
+const asn1 = forge.asn1;
 import { sameAs, required } from "vuelidate/lib/validators";
 
 export class Options {
@@ -68,7 +70,7 @@ export default class SignerComponent extends Vue {
   public certificateX509: any;
   public certificatePem = "";
   private privateKey: any;
-  private cryptedPrivateKey!: asn1.Asn1;
+  private cryptedPrivateKey!: forge.asn1.Asn1;
   private currentPageNumber = 1;
 
   public invalidFiles = true;
