@@ -5,9 +5,9 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var tslib = require('tslib');
+var forge = _interopDefault(require('node-forge'));
 var Component = _interopDefault(require('vue-class-component'));
 var vuePropertyDecorator = require('vue-property-decorator');
-var forge = _interopDefault(require('node-forge'));
 var validators = require('vuelidate/lib/validators');
 
 var signer = {
@@ -65,7 +65,7 @@ var Options =
 /** @class */
 function () {
   function Options() {
-    this.cerValidator = function (_cer) {
+    this.validator = function (_cer) {
       console.warn("No se configuró ningún validador de certificados");
       return Promise.reject(false);
     };
@@ -75,13 +75,13 @@ function () {
 }();
 var defaultConfig = new Options();
 
-var stillValid = function stillValid(value, vm) {
+var stillValid = function stillValid(_value, vm) {
   if (!vm.certificateX509) return true;
   var today = new Date();
   return today < vm.certificateX509.validity.notAfter;
 };
 
-var alreadyValid = function alreadyValid(value, vm) {
+var alreadyValid = function alreadyValid(_value, vm) {
   if (!vm.certificateX509) return true;
   var today = new Date();
   return today > vm.certificateX509.validity.notBefore;
@@ -101,7 +101,7 @@ function (_super) {
     _this.certificatePem = "";
     _this.currentPageNumber = 1;
     _this.invalidFiles = true;
-    _this.isCerValid = false;
+    _this.isCertValid = false;
     _this.unparseableCertificate = false;
     _this.unparseablePrivateKey = false;
     _this.wrongPassword = false;
@@ -144,11 +144,11 @@ function (_super) {
         md.update(info, "utf8");
         this.certificateX509.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
         this.invalidFiles = false;
-        this.options.cerValidator(this.certificatePem).then(function (status) {
-          return _this.isCerValid = status;
+        this.options.validator(this.certificatePem).then(function (status) {
+          return _this.isCertValid = status;
         }).catch(function (err) {
           console.error(err);
-          _this.isCerValid = false;
+          _this.isCertValid = false;
         });
       }
     } catch (e) {
@@ -189,7 +189,7 @@ function (_super) {
   SignerComponent.prototype.firmarIndividual = function () {
     var signature = this.firmarData(this.data);
     this.$emit("input", {
-      cer: this.certificatePem,
+      certificate: this.certificatePem,
       signature: signature
     });
   };
@@ -205,7 +205,7 @@ function (_super) {
     var _a;
 
     this.invalidFiles = true;
-    this.isCerValid = false;
+    this.isCertValid = false;
     (_a = this.$v.certificatePem) === null || _a === void 0 ? void 0 : _a.$reset();
     this.getData(this.$refs.cert.files[0], this.setCertContent);
   };
@@ -322,7 +322,7 @@ var __vue_render__ = function __vue_render__() {
     on: {
       "submit": function submit($event) {
         $event.preventDefault();
-        return _vm.validar();
+        return _vm.firmar();
       }
     }
   }, [_c('div', [_c('div', {
@@ -541,12 +541,7 @@ var __vue_render__ = function __vue_render__() {
     attrs: {
       "type": "submit",
       "value": "Firmar",
-      "disabled": _vm.invalidFiles || !_vm.isCerValid
-    },
-    on: {
-      "click": function click($event) {
-        return _vm.firmar();
-      }
+      "disabled": _vm.invalidFiles || !_vm.isCertValid
     }
   }, [_c('span', {
     domProps: {

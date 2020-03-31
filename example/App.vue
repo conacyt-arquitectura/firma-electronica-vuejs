@@ -32,7 +32,7 @@
       <div class="col-4">
         <div class="form-group">
           <label for="cer-code">Certificado</label>
-          <pre id="cer-code">{{ model.cer }}</pre>
+          <pre id="cer-code">{{ model.certificate }}</pre>
         </div>
       </div>
       <div class="col-4">
@@ -75,7 +75,7 @@ i18n.mergeLocaleMessage("es", i18nEs);
 i18n.mergeLocaleMessage("en", i18nEn);
 
 Vue.use(SignerComponent, {
-  cerValidator: function(cer: string): Promise<boolean> {
+  validator: function(cer: string): Promise<boolean> {
     console.log("Usando validador de certificados dummy (siempre retorna true)...");
     return Promise.resolve(true);
   }
@@ -129,7 +129,7 @@ export default Vue.extend({
     // o almacenarlas para luego enviarlas juntas
     consumer: function(firmas: Array<any>) {
       console.log("Certificado y firmas: ", {
-        certificado: (this.model as any).cer,
+        certificado: (this.model as any).certificate,
         firmas: firmas
       });
     }

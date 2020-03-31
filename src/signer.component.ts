@@ -1,17 +1,17 @@
-import Component from "vue-class-component";
-import { Vue, Prop } from "vue-property-decorator";
-import Vuelidate from "vuelidate";
-import { IVueI18n } from "vue-i18n/types/index";
 import i18nEn from "@/i18n/en/signer.json";
 import i18nEs from "@/i18n/es/signer.json";
-
 import forge from "node-forge";
+import Component from "vue-class-component";
+import { Prop, Vue } from "vue-property-decorator";
+import { required, sameAs } from "vuelidate/lib/validators";
+import Vuelidate from "vuelidate";
+import { IVueI18n } from "vue-i18n/types/index";
+
 const pki = forge.pki;
 const asn1 = forge.asn1;
-import { sameAs, required } from "vuelidate/lib/validators";
 
 export class Options {
-  public cerValidator = function(_cer: string): Promise<boolean> {
+  public validator = function(_cer: string): Promise<boolean> {
     console.warn("No se configuró ningún validador de certificados");
     return Promise.reject(false);
   };
@@ -21,13 +21,13 @@ export class Options {
 let defaultConfig = new Options();
 export { defaultConfig };
 
-const stillValid = (value: any, vm: any) => {
+const stillValid = (_value: any, vm: any) => {
   if (!vm.certificateX509) return true;
   const today = new Date();
   return today < vm.certificateX509.validity.notAfter;
 };
 
-const alreadyValid = (value: any, vm: any) => {
+const alreadyValid = (_value: any, vm: any) => {
   if (!vm.certificateX509) return true;
   const today = new Date();
   return today > vm.certificateX509.validity.notBefore;
@@ -74,7 +74,7 @@ export default class SignerComponent extends Vue {
   private currentPageNumber = 1;
 
   public invalidFiles = true;
-  public isCerValid = false;
+  public isCertValid = false;
 
   public unparseableCertificate = false;
   public unparseablePrivateKey = false;
@@ -111,11 +111,11 @@ export default class SignerComponent extends Vue {
         this.certificateX509.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
         this.invalidFiles = false;
         this.options
-          .cerValidator(this.certificatePem)
-          .then(status => (this.isCerValid = status))
+          .validator(this.certificatePem)
+          .then(status => (this.isCertValid = status))
           .catch(err => {
             console.error(err);
-            this.isCerValid = false;
+            this.isCertValid = false;
           });
       }
     } catch (e) {
@@ -150,7 +150,7 @@ export default class SignerComponent extends Vue {
 
   public firmarIndividual() {
     const signature = this.firmarData(this.data);
-    this.$emit("input", { cer: this.certificatePem, signature: signature });
+    this.$emit("input", { certificate: this.certificatePem, signature: signature });
   }
 
   private firmarData(data: string) {
@@ -162,7 +162,7 @@ export default class SignerComponent extends Vue {
 
   public handleCertUpload() {
     this.invalidFiles = true;
-    this.isCerValid = false;
+    this.isCertValid = false;
     this.$v.certificatePem?.$reset();
     this.getData((this.$refs.cert as any).files[0], this.setCertContent);
   }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <form @submit.prevent="validar()" role="form">
+    <form @submit.prevent="firmar()" role="form">
       <div>
         <div class="form-group">
           <label for="cert"><span v-text="$t('signer.certificate')">Certificate</span>:</label>
@@ -44,7 +44,7 @@
         <button type="button" class="btn btn-secondary" @click="validar()" :disabled="$v.certificatePem.$invalid || $v.cerRfc.$invalid || $v.password.$invalid">
           <span v-text="$t('signer.validate')">Validate</span>
         </button>
-        <button type="submit" class="btn btn-primary" value="Firmar" v-on:click="firmar()" :disabled="invalidFiles || !isCerValid">
+        <button type="submit" class="btn btn-primary" value="Firmar" :disabled="invalidFiles || !isCertValid">
           <span v-text="$t('signer.sign')">Sign</span>
         </button>
       </div>

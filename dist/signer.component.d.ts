@@ -1,6 +1,6 @@
 import { Vue } from "vue-property-decorator";
 export declare class Options {
-  cerValidator: (_cer: string) => Promise<boolean>;
+  validator: (_cer: string) => Promise<boolean>;
   constructor();
 }
 declare let defaultConfig: Options;
@@ -19,7 +19,7 @@ export default class SignerComponent extends Vue {
   private cryptedPrivateKey;
   private currentPageNumber;
   invalidFiles: boolean;
-  isCerValid: boolean;
+  isCertValid: boolean;
   unparseableCertificate: boolean;
   unparseablePrivateKey: boolean;
   wrongPassword: boolean;
