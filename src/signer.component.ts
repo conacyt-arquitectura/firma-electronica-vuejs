@@ -11,9 +11,9 @@ const asn1 = forge.asn1;
 import { sameAs, required } from "vuelidate/lib/validators";
 
 export class Options {
-  public cerValidator = function(_cer: string) {
+  public cerValidator = function(_cer: string): Promise<boolean> {
     console.warn("No se configuró ningún validador de certificados");
-    return false;
+    return Promise.reject(false);
   };
   constructor() {}
 }
@@ -110,7 +110,13 @@ export default class SignerComponent extends Vue {
 
         this.certificateX509.publicKey.verify(md.digest().bytes(), this.privateKey.sign(md));
         this.invalidFiles = false;
-        this.isCerValid = this.options.cerValidator(this.certificatePem);
+        this.options
+          .cerValidator(this.certificatePem)
+          .then(status => (this.isCerValid = status))
+          .catch(err => {
+            console.error(err);
+            this.isCerValid = false;
+          });
       }
     } catch (e) {
       this.disparity = true;

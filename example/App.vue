@@ -75,9 +75,9 @@ i18n.mergeLocaleMessage("es", i18nEs);
 i18n.mergeLocaleMessage("en", i18nEn);
 
 Vue.use(SignerComponent, {
-  cerValidator: function(cer: string) {
+  cerValidator: function(cer: string): Promise<boolean> {
     console.log("Usando validador de certificados dummy (siempre retorna true)...");
-    return true;
+    return Promise.resolve(true);
   }
 });
 
