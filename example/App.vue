@@ -23,7 +23,7 @@
           </select>
         </div>
         <strong>Se espera la firma de la persona con RFC {{ rfc }}</strong>
-        <signer v-model="model" :data="cadenaOriginal" :rfc="rfc" :producer="producer" :consumer="consumer"></signer>
+        <signer v-model="model" :data="cadenaOriginal" :rfc="rfc" :producer="producer" :consumer="consumer" @signed="onSigned()"></signer>
       </div>
       <div class="col-4" />
     </div>
@@ -122,6 +122,9 @@ export default Vue.extend({
         (this.cadenaOriginal as any) = null;
         (this.producer as any) = producer;
       }
+    },
+    onSigned: function() {
+      console.log("¡Firmado!");
     },
     // Consume las firmas producidas por el componente.
     // Es responsabilidad del controlador decidir qué hacer con las firmas.

@@ -186,6 +186,7 @@ function (_super) {
       certificate: this.certificatePem,
       signature: signature
     });
+    this.$emit("signed");
   };
 
   SignerComponent.prototype.firmarData = function (data) {

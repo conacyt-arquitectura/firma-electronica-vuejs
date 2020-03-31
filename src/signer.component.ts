@@ -151,6 +151,7 @@ export default class SignerComponent extends Vue {
   public firmarIndividual() {
     const signature = this.firmarData(this.data);
     this.$emit("input", { certificate: this.certificatePem, signature: signature });
+    this.$emit("signed");
   }
 
   private firmarData(data: string) {
