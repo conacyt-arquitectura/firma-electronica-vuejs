@@ -316,7 +316,6 @@ var __vue_render__ = function __vue_render__() {
     on: {
       "submit": function submit($event) {
         $event.preventDefault();
-        return _vm.firmar();
       }
     }
   }, [_c('div', [_c('div', {
@@ -534,8 +533,12 @@ var __vue_render__ = function __vue_render__() {
     staticClass: "btn btn-primary",
     attrs: {
       "type": "submit",
-      "value": "Firmar",
       "disabled": _vm.invalidFiles || !_vm.isCertValid
+    },
+    on: {
+      "click": function click($event) {
+        return _vm.firmar();
+      }
     }
   }, [_c('span', {
     domProps: {
