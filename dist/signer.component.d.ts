@@ -9,7 +9,6 @@ export default class SignerComponent extends Vue {
   readonly data: string;
   readonly rfc: string;
   readonly producer: Function;
-  readonly consumer: Function;
   private password;
   cerRfc: string;
   curp: string;

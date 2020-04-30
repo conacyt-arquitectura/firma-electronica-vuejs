@@ -60,9 +60,6 @@ export default class SignerComponent extends Vue {
   @Prop({ required: false, type: Function })
   readonly producer!: Function;
 
-  @Prop({ required: false, type: Function })
-  readonly consumer!: Function;
-
   private password: string = "";
   public cerRfc: string = "";
   public curp: string = "";
@@ -132,7 +129,7 @@ export default class SignerComponent extends Vue {
   }
 
   public firmarMultiple() {
-    this.$emit("input", { cer: this.certificatePem });
+    this.$emit("input", { certificate: this.certificatePem });
     let hasNext = false;
     do {
       this.producer(this.currentPageNumber)
@@ -144,7 +141,7 @@ export default class SignerComponent extends Vue {
               signature: this.firmarData(e.data)
             };
           });
-          this.consumer(signatures);
+          this.$emit("signed", signatures);
           this.currentPageNumber++;
         })
         .catch(console.error);

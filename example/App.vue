@@ -23,7 +23,7 @@
           </select>
         </div>
         <strong>Se espera la firma de la persona con RFC {{ rfc }}</strong>
-        <signer v-model="model" :data="cadenaOriginal" :rfc="rfc" :producer="producer" :consumer="consumer" @signed="onSigned()"></signer>
+        <signer v-model="model" :data="cadenaOriginal" :rfc="rfc" :producer="producer" @signed="onSigned"></signer>
       </div>
       <div class="col-4" />
     </div>
@@ -88,18 +88,33 @@ const producer = function(page: number) {
   return new Promise((resolve, reject) => {
     if (page <= numPages) {
       const id = new Date().getTime();
-      resolve({
-        hasNext: page < numPages,
-        content: [
-          {
-            id: id,
-            data: "MensajeACifrar" + id
-          }
-        ]
-      });
+      setTimeout(() => {
+        resolve({
+          hasNext: page < numPages,
+          content: [
+            {
+              id: id,
+              data: "MensajeACifrar" + id
+            }
+          ]
+        });
+      }, 2000);
+    } else {
+      reject();
     }
-    reject();
   });
+};
+
+const onSingleSigned = function() {
+  console.log("¡Firmado!");
+};
+
+// Consume las firmas producidas por el componente.
+// Es responsabilidad del controlador decidir qué hacer con las firmas.
+// Por ejemplo, enviarlas inmediatamente a la aplicación
+// o almacenarlas para luego enviarlas juntas
+const onMultipleSigned = function(firmas: any) {
+  console.log("Firmas: ", firmas);
 };
 
 const cadenaOriginal = "CadenaOriginal";
@@ -112,7 +127,8 @@ export default Vue.extend({
       cadenaOriginal: cadenaOriginal,
       rfc: "GONM430818HP3",
       example: "single",
-      producer: null
+      producer: null,
+      onSigned: onSingleSigned
     };
   },
   methods: {
@@ -120,23 +136,12 @@ export default Vue.extend({
       if (this.example === "single") {
         this.cadenaOriginal = cadenaOriginal;
         this.producer = null;
+        (this.onSigned as any) = onSingleSigned;
       } else if (this.example === "multiple") {
         (this.cadenaOriginal as any) = null;
         (this.producer as any) = producer;
+        (this.onSigned as any) = onMultipleSigned;
       }
-    },
-    onSigned: function() {
-      console.log("¡Firmado!");
-    },
-    // Consume las firmas producidas por el componente.
-    // Es responsabilidad del controlador decidir qué hacer con las firmas.
-    // Por ejemplo, enviarlas inmediatamente a la aplicación
-    // o almacenarlas para luego enviarlas juntas
-    consumer: function(firmas: Array<any>) {
-      console.log("Certificado y firmas: ", {
-        certificado: (this.model as any).certificate,
-        firmas: firmas
-      });
     }
   },
   computed: {

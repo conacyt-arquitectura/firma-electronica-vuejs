@@ -168,7 +168,7 @@ function (_super) {
     var _this = this;
 
     this.$emit("input", {
-      cer: this.certificatePem
+      certificate: this.certificatePem
     });
     var hasNext = false;
 
@@ -182,7 +182,7 @@ function (_super) {
           };
         });
 
-        _this.consumer(signatures);
+        _this.$emit("signed", signatures);
 
         _this.currentPageNumber++;
       }).catch(console.error);
@@ -284,11 +284,6 @@ function (_super) {
     required: false,
     type: Function
   })], SignerComponent.prototype, "producer", void 0);
-
-  tslib.__decorate([vuePropertyDecorator.Prop({
-    required: false,
-    type: Function
-  })], SignerComponent.prototype, "consumer", void 0);
 
   SignerComponent = tslib.__decorate([Component({
     validations: {
