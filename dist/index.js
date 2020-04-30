@@ -170,20 +170,23 @@ function (_super) {
     this.$emit("input", {
       cer: this.certificatePem
     });
-    var page;
+    var hasNext = false;
 
     do {
-      page = this.producer(this.currentPageNumber);
-      if (!page) return;
-      var signatures = page.content.map(function (e) {
-        return {
-          id: e.id,
-          signature: _this.firmarData(e.data)
-        };
-      });
-      this.consumer(signatures);
-      this.currentPageNumber++;
-    } while (page.hasNext);
+      this.producer(this.currentPageNumber).then(function (page) {
+        hasNext = page.hasNext;
+        var signatures = page.content.map(function (e) {
+          return {
+            id: e.id,
+            signature: _this.firmarData(e.data)
+          };
+        });
+
+        _this.consumer(signatures);
+
+        _this.currentPageNumber++;
+      }).catch(console.error);
+    } while (hasNext);
   };
 
   SignerComponent.prototype.firmarIndividual = function () {

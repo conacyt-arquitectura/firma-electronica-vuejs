@@ -133,19 +133,22 @@ export default class SignerComponent extends Vue {
 
   public firmarMultiple() {
     this.$emit("input", { cer: this.certificatePem });
-    let page: any;
+    let hasNext = false;
     do {
-      page = this.producer(this.currentPageNumber);
-      if (!page) return;
-      const signatures = (page.content as Array<any>).map(e => {
-        return {
-          id: e.id,
-          signature: this.firmarData(e.data)
-        };
-      });
-      this.consumer(signatures);
-      this.currentPageNumber++;
-    } while (page.hasNext);
+      this.producer(this.currentPageNumber)
+        .then((page: { content: any[]; hasNext: boolean }) => {
+          hasNext = page.hasNext;
+          const signatures = page.content.map(e => {
+            return {
+              id: e.id,
+              signature: this.firmarData(e.data)
+            };
+          });
+          this.consumer(signatures);
+          this.currentPageNumber++;
+        })
+        .catch(console.error);
+    } while (hasNext);
   }
 
   public firmarIndividual() {

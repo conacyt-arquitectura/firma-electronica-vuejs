@@ -85,19 +85,21 @@ Vue.use(SignerComponent, {
 //Retorna páginas de tamaño 1 mientras se indique que existe una siguiente página
 const producer = function(page: number) {
   const numPages = 2;
-  if (page <= numPages) {
-    const id = new Date().getTime();
-    return {
-      hasNext: page < numPages,
-      content: [
-        {
-          id: id,
-          data: "MensajeACifrar" + id
-        }
-      ]
-    };
-  }
-  return null;
+  return new Promise((resolve, reject) => {
+    if (page <= numPages) {
+      const id = new Date().getTime();
+      resolve({
+        hasNext: page < numPages,
+        content: [
+          {
+            id: id,
+            data: "MensajeACifrar" + id
+          }
+        ]
+      });
+    }
+    reject();
+  });
 };
 
 const cadenaOriginal = "CadenaOriginal";
