@@ -3,7 +3,7 @@ name: default
 
 steps:
 - name: install
-  image: node:10-slim
+  image: node:10
   commands:
   - npm install
   when:
@@ -13,7 +13,7 @@ steps:
     - rollback
 
 - name: compile
-  image: node:10-slim
+  image: node:10
   commands:
   - npm run-script build
   when:
