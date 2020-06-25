@@ -73,6 +73,8 @@ export default class SignerComponent extends Vue {
   public invalidFiles = true;
   public isCertValid = false;
 
+  public alreadySigned = false;
+
   public unparseableCertificate = false;
   public unparseablePrivateKey = false;
   public wrongPassword = false;
@@ -94,6 +96,7 @@ export default class SignerComponent extends Vue {
     this.privateKey = null;
     this.disparity = false;
     this.wrongPassword = false;
+    this.alreadySigned = false;
 
     try {
       this.privateKey = pki.decryptRsaPrivateKey(pki.encryptedPrivateKeyToPem(this.cryptedPrivateKey), this.password);
@@ -121,6 +124,8 @@ export default class SignerComponent extends Vue {
   }
 
   public firmar() {
+    this.$emit("processSignature");
+    this.alreadySigned = true;
     if (this.producer) {
       this.firmarMultiple();
     } else {
@@ -130,22 +135,28 @@ export default class SignerComponent extends Vue {
 
   public firmarMultiple() {
     this.$emit("input", { certificate: this.certificatePem });
-    let hasNext = false;
-    do {
+    this.currentPageNumber = 1;
+    this.doFirma(true);
+  }
+
+  private doFirma(hasNext: boolean) {
+    if (hasNext) {
       this.producer(this.currentPageNumber)
         .then((page: { content: any[]; hasNext: boolean }) => {
           hasNext = page.hasNext;
           const signatures = page.content.map(e => {
             return {
               id: e.id,
+              data: e.data,
               signature: this.firmarData(e.data)
             };
           });
           this.$emit("signed", signatures);
           this.currentPageNumber++;
+          this.doFirma(hasNext);
         })
         .catch(console.error);
-    } while (hasNext);
+    }
   }
 
   public firmarIndividual() {

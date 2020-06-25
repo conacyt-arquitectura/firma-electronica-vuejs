@@ -44,7 +44,7 @@
         <button type="button" class="btn btn-secondary" @click="validar()" :disabled="$v.certificatePem.$invalid || $v.cerRfc.$invalid || $v.password.$invalid">
           <span v-text="$t('signer.validate')">Validate</span>
         </button>
-        <button type="submit" class="btn btn-primary" @click="firmar()" :disabled="invalidFiles || !isCertValid">
+        <button type="submit" class="btn btn-primary" @click="firmar()" :disabled="invalidFiles || !isCertValid || alreadySigned">
           <span v-text="$t('signer.sign')">Sign</span>
         </button>
       </div>
