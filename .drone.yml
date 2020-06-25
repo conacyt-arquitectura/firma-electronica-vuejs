@@ -1,0 +1,53 @@
+kind: pipeline
+name: default
+
+steps:
+- name: install
+  image: node:10-slim
+  commands:
+  - npm install
+  when:
+    event:
+    - push
+    - pull_request
+    - rollback
+
+- name: compile
+  image: node:10-slim
+  commands:
+  - npm run-script build
+  when:
+    event:
+    - push
+    - pull_request
+    - rollback
+
+- name: code-analysis
+  image: aosapps/drone-sonar-plugin
+  settings:
+    sonar_host:
+      from_secret: sonar_host
+    sonar_token:
+      from_secret: sonar_token
+    timeout: 20
+    sources: .
+    exclusions: dist/**/*
+  when:
+    event:
+    - push
+
+- name: npm
+  image: plugins/npm
+  settings:
+    username: deployment
+    password:
+      from_secret: npm_password
+    email: arquitectura.conacyt@conacyt.mx
+  when:
+    status:
+    - success
+    event:
+    - push
+    branch:
+      include:
+      - master
